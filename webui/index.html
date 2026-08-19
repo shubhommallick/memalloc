@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ Custom Memory Allocator Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <span class="icon">⚡</span>
+                <h1>C++ Memory Allocator Visualizer</h1>
+            </div>
+            <div class="header-actions">
+                <button id="btn-reset" class="btn btn-danger">Reset All Allocators</button>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Total Allocated</span>
+                <span class="stat-value" id="stat-total">0 B</span>
+                <div class="stat-bar"><div class="stat-bar-fill" id="bar-total"></div></div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Active Bytes</span>
+                <span class="stat-value highlight-cyan" id="stat-active">0 B</span>
+                <div class="stat-bar"><div class="stat-bar-fill cyan" id="bar-active"></div></div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Peak Usage</span>
+                <span class="stat-value highlight-purple" id="stat-peak">0 B</span>
+                <div class="stat-bar"><div class="stat-bar-fill purple" id="bar-peak"></div></div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Allocations Count</span>
+                <span class="stat-value highlight-green" id="stat-count">0</span>
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-panel">
+            <h2>Interactive Allocation Tester</h2>
+            <div class="button-group">
+                <button id="btn-alloc-arena" class="btn btn-primary">+ Allocate 64B (Arena)</button>
+                <button id="btn-alloc-pool" class="btn btn-secondary">+ Allocate Block (Pool)</button>
+                <button id="btn-alloc-freelist" class="btn btn-accent">+ Allocate 96B (FreeList)</button>
+            </div>
+        </div>
+
+        <!-- Visual Memory Layout Grid -->
+        <div class="visualizer-grid">
+            <!-- Arena Allocator Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Arena Allocator (Bump / Linear)</h3>
+                    <span class="badge" id="badge-arena">0 / 4096 B</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-arena"></div>
+                </div>
+                <p class="panel-desc">Fast sequential bump pointer allocation. Zero internal fragmentation.</p>
+            </div>
+
+            <!-- Pool Allocator Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Pool Allocator (Fixed Blocks)</h3>
+                    <span class="badge" id="badge-pool">0 / 32 Blocks</span>
+                </div>
+                <div class="blocks-grid" id="grid-pool"></div>
+                <p class="panel-desc">Uniform block size allocations managed by $O(1)$ intrusive free-list stack.</p>
+            </div>
+
+            <!-- Free List Allocator Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Free-List Allocator (Variable Size)</h3>
+                    <span class="badge" id="badge-freelist">0 / 4096 B</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar freelist" id="progress-freelist"></div>
+                </div>
+                <p class="panel-desc">Dynamic variable block allocations with First-Fit splitting and coalescing.</p>
+            </div>
+        </div>
+
+        <!-- Allocation Table / Snapshots -->
+        <div class="panel snapshots-panel">
+            <h3>Active Allocation Table</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Memory Address</th>
+                            <th>Size</th>
+                            <th>Engine</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-snapshots">
+                        <tr><td colspan="4" class="text-muted">No active allocations</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
