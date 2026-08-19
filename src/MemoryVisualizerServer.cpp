@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cstdlib>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -29,6 +30,14 @@ static DWORD WINAPI serverThreadProc(LPVOID lpParam) {
     }
     return 0;
 }
+#else
+static void* posixServerThreadProc(void* arg) {
+    MemoryVisualizerServer* server = static_cast<MemoryVisualizerServer*>(arg);
+    if (server) {
+        server->runServerLoop();
+    }
+    return nullptr;
+}
 #endif
 
 MemoryVisualizerServer::MemoryVisualizerServer(int port, ArenaAllocator& arena, PoolAllocator& pool, FreeListAllocator& freeList)
@@ -43,6 +52,11 @@ void MemoryVisualizerServer::start() {
 #ifdef _WIN32
     HANDLE hThread = CreateThread(NULL, 0, serverThreadProc, this, 0, NULL);
     threadHandle = static_cast<void*>(hThread);
+#else
+    pthread_t thread;
+    if (pthread_create(&thread, nullptr, posixServerThreadProc, this) == 0) {
+        threadHandle = reinterpret_cast<void*>(thread);
+    }
 #endif
 }
 
@@ -53,6 +67,12 @@ void MemoryVisualizerServer::stop() {
         if (threadHandle) {
             WaitForSingleObject(static_cast<HANDLE>(threadHandle), 1000);
             CloseHandle(static_cast<HANDLE>(threadHandle));
+            threadHandle = nullptr;
+        }
+#else
+        if (threadHandle) {
+            pthread_t thread = reinterpret_cast<pthread_t>(threadHandle);
+            pthread_join(thread, nullptr);
             threadHandle = nullptr;
         }
 #endif
